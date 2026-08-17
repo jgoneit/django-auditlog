@@ -12,6 +12,7 @@ from dateutil.tz import gettz
 from django import VERSION as DJANGO_VERSION
 from django.apps import apps
 from django.conf import settings
+from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, User
@@ -68,6 +69,7 @@ from test_app.models import (
 from auditlog import get_logentry_model
 from auditlog.admin import LogEntryAdmin
 from auditlog.cid import get_cid
+from auditlog.filters import ResourceTypeFilter
 from auditlog.context import disable_auditlog, set_actor, set_extra_data
 from auditlog.diff import mask_str, model_instance_diff
 from auditlog.middleware import AuditlogMiddleware
@@ -1855,6 +1857,21 @@ class AdminPanelTest(TestCase):
 
         self.assertTrue(self.admin.has_delete_permission(delete_object_request, log))
         self.assertFalse(self.admin.has_delete_permission(delete_log_request, log))
+
+    def test_resource_type_filter_invalid_value_raises_incorrect_lookup_parameters(
+        self,
+    ):
+        request = RequestFactory().get(
+            f"/{self.admin_path_prefix}/",
+            {"resource_type": "21X"},
+        )
+        request.user = self.user
+        resource_type_filter = ResourceTypeFilter(
+            request, dict(request.GET.lists()), LogEntry, self.admin
+        )
+
+        with self.assertRaises(IncorrectLookupParameters):
+            resource_type_filter.queryset(request, LogEntry.objects.all())
 
 
 class DiffMsgTest(TestCase):
