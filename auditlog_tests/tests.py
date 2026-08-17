@@ -1858,6 +1858,12 @@ class AdminPanelTest(TestCase):
         self.assertTrue(self.admin.has_delete_permission(delete_object_request, log))
         self.assertFalse(self.admin.has_delete_permission(delete_log_request, log))
 
+    def _list_filter_params(self, request):
+        # Django 5.0+ ChangeList passes multi-value query params as lists.
+        if DJANGO_VERSION >= (5, 0):
+            return dict(request.GET.lists())
+        return request.GET.copy()
+
     def test_resource_type_filter_invalid_value_raises_incorrect_lookup_parameters(
         self,
     ):
@@ -1867,7 +1873,7 @@ class AdminPanelTest(TestCase):
         )
         request.user = self.user
         resource_type_filter = ResourceTypeFilter(
-            request, dict(request.GET.lists()), LogEntry, self.admin
+            request, self._list_filter_params(request), LogEntry, self.admin
         )
 
         with self.assertRaises(IncorrectLookupParameters):
@@ -1882,7 +1888,7 @@ class AdminPanelTest(TestCase):
         )
         request.user = self.user
         resource_type_filter = ResourceTypeFilter(
-            request, dict(request.GET.lists()), LogEntry, self.admin
+            request, self._list_filter_params(request), LogEntry, self.admin
         )
 
         result = resource_type_filter.queryset(request, LogEntry.objects.all())
