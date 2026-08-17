@@ -1873,6 +1873,23 @@ class AdminPanelTest(TestCase):
         with self.assertRaises(IncorrectLookupParameters):
             resource_type_filter.queryset(request, LogEntry.objects.all())
 
+    def test_resource_type_filter_valid_value_filters_queryset(self):
+        SimpleExcludeModel.objects.create(label="other", text="other")
+        content_type_id = self.obj.history.latest().content_type_id
+        request = RequestFactory().get(
+            f"/{self.admin_path_prefix}/",
+            {"resource_type": str(content_type_id)},
+        )
+        request.user = self.user
+        resource_type_filter = ResourceTypeFilter(
+            request, dict(request.GET.lists()), LogEntry, self.admin
+        )
+
+        result = resource_type_filter.queryset(request, LogEntry.objects.all())
+
+        self.assertEqual(result.count(), 1)
+        self.assertEqual(result.get().content_type_id, content_type_id)
+
 
 class DiffMsgTest(TestCase):
     def setUp(self):
