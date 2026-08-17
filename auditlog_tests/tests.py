@@ -69,9 +69,9 @@ from test_app.models import (
 from auditlog import get_logentry_model
 from auditlog.admin import LogEntryAdmin
 from auditlog.cid import get_cid
-from auditlog.filters import ResourceTypeFilter
 from auditlog.context import disable_auditlog, set_actor, set_extra_data
 from auditlog.diff import mask_str, model_instance_diff
+from auditlog.filters import ResourceTypeFilter
 from auditlog.middleware import AuditlogMiddleware
 from auditlog.models import DEFAULT_OBJECT_REPR
 from auditlog.registry import AuditlogModelRegistry, AuditLogRegistrationError, auditlog
