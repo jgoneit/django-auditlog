@@ -1859,10 +1859,11 @@ class AdminPanelTest(TestCase):
         self.assertFalse(self.admin.has_delete_permission(delete_log_request, log))
 
     def _list_filter_params(self, request):
-        # Django 5.0+ ChangeList passes multi-value query params as lists.
+        # Match ChangeList: Django 5.0+ uses lists(), 4.2 uses items() strings.
+        # QueryDict.pop() returns a list; Django 4.2 SimpleListFilter stores that as-is.
         if DJANGO_VERSION >= (5, 0):
             return dict(request.GET.lists())
-        return request.GET.copy()
+        return dict(request.GET.items())
 
     def test_resource_type_filter_invalid_value_raises_incorrect_lookup_parameters(
         self,
